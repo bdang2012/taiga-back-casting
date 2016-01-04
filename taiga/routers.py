@@ -28,11 +28,12 @@ router.register(r"locales", LocalesViewSet, base_name="locales")
 from taiga.auth.api import AuthViewSet
 from taiga.users.api import UsersViewSet
 from taiga.users.api import RolesViewSet
+from taiga.casting.api import CastingViewSet
 
 router.register(r"auth", AuthViewSet, base_name="auth")
 router.register(r"users", UsersViewSet, base_name="users")
 router.register(r"roles", RolesViewSet, base_name="roles")
-
+router.register(r"casting", CastingViewSet, base_name="casting")
 
 # User Storage
 from taiga.userstorage.api import StorageEntriesViewSet

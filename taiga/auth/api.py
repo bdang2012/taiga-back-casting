@@ -138,6 +138,8 @@ class AuthViewSet(viewsets.ViewSet):
 
         login_type = request.DATA.get("type", None)
 
+        print(request.DATA)
+
         if login_type in auth_plugins:
             data = auth_plugins[login_type]['login_func'](request)
             return response.Ok(data)

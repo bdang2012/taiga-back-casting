@@ -38,23 +38,24 @@ from taiga.projects.votes import services as votes_service
 from taiga.users.services import get_user_by_username_or_email
 from easy_thumbnails.source_generators import pil_image
 
-from . import models
-from . import serializers
-from . import permissions
-from . import filters as user_filters
-from . import services
-from .signals import user_cancel_account as user_cancel_account_signal
+from taiga.users import models
+from taiga.users import serializers
+from taiga.casting import permissions
+from taiga.users import filters as user_filters
+from taiga.users import services
+from taiga.users.signals import user_cancel_account as user_cancel_account_signal
+from taiga.auth.services import make_auth_response_data
 
 
-class UsersViewSet(ModelCrudViewSet):
-    permission_classes = (permissions.UserPermission,)
+class CastingViewSet(ModelCrudViewSet):
+    permission_classes = (permissions.CastingPermission,)
     admin_serializer_class = serializers.UserAdminSerializer
     serializer_class = serializers.UserSerializer
     queryset = models.User.objects.all().prefetch_related("memberships")
     filter_backends = (MembersFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action in ["partial_update", "update", "retrieve", "by_username"]:
+        if self.action in ["partial_update", "update", "retrieve", "by_username", "by_email"]:
             user = self.object
             if self.request.user == user or self.request.user.is_superuser:
                 return self.admin_serializer_class
@@ -136,6 +137,18 @@ class UsersViewSet(ModelCrudViewSet):
         username = request.QUERY_PARAMS.get("username", None)
         return self.retrieve(request, username=username)
 
+    @list_route(methods=["GET"])
+    def by_email(self, request, *args, **kwargs):
+        email = request.QUERY_PARAMS.get("email", None)
+        # user = get_user_by_username_or_email(email)
+        user = self.retrieve(request, email=email)
+
+        user.data['auth_token'] = 'binh auth token'
+        user.data['email'] = email
+
+        data = make_auth_response_data(user)
+        #return response.Ok(user.data)
+        return response.NoContent()
     
     @list_route(methods=["POST"])
     def password_recovery(self, request, pk=None):
@@ -400,23 +413,3 @@ class UsersViewSet(ModelCrudViewSet):
 
         return response.Ok(response_data)
 
-######################################################
-## Role
-######################################################
-
-class RolesViewSet(ModelCrudViewSet):
-    model = models.Role
-    serializer_class = serializers.RoleSerializer
-    permission_classes = (permissions.RolesPermission, )
-    filter_backends = (filters.CanViewProjectFilterBackend,)
-    filter_fields = ('project',)
-
-    def pre_delete(self, obj):
-        move_to = self.request.QUERY_PARAMS.get('moveTo', None)
-        if move_to:
-            membership_model = apps.get_model("projects", "Membership")
-            role_dest = get_object_or_404(self.model, project=obj.project, id=move_to)
-            qs = membership_model.objects.filter(project_id=obj.project.pk, role=obj)
-            qs.update(role=role_dest)
-
-        super().pre_delete(obj)

@@ -138,6 +138,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     new_email = models.EmailField(_('new email address'), null=True, blank=True)
 
     is_system = models.BooleanField(null=False, blank=False, default=False)
+    is_producer = models.BooleanField(null=False, blank=False, default=False)
+    is_agent = models.BooleanField(null=False, blank=False, default=False)
+    
     _cached_memberships = None
     _cached_liked_ids = None
     _cached_watched_ids = None
