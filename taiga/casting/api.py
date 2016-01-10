@@ -140,16 +140,10 @@ class CastingViewSet(ModelCrudViewSet):
     @list_route(methods=["GET"])
     def by_email(self, request, *args, **kwargs):
         email = request.QUERY_PARAMS.get("email", None)
-        # user = get_user_by_username_or_email(email)
         user = self.retrieve(request, email=email)
-
-        user.data['auth_token'] = 'binh auth token'
         user.data['email'] = email
+        return user # self.retrieve(request, email=email)
 
-        data = make_auth_response_data(user)
-        #return response.Ok(user.data)
-        return response.NoContent()
-    
     @list_route(methods=["POST"])
     def password_recovery(self, request, pk=None):
         username_or_email = request.DATA.get('username', None)
