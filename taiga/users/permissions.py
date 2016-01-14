@@ -49,6 +49,8 @@ class UserPermission(TaigaResourcePermission):
     liked_perms = AllowAny()
     voted_perms = AllowAny()
     watched_perms = AllowAny()
+    by_agents_perms = AllowAny()
+    by_agent_members_perms = AllowAny()
 
 
 class RolesPermission(TaigaResourcePermission):

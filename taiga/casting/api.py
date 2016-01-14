@@ -407,3 +407,30 @@ class CastingViewSet(ModelCrudViewSet):
 
         return response.Ok(response_data)
 
+    @list_route(methods=["GET"])
+    def by_agent_members(self, request, *args, **kwargs):
+
+        # if user is producer then return all members, else we will filter by agent
+        id = request.QUERY_PARAMS.get("id", None)
+
+        try:
+            user = models.User.objects.get(id=id)
+        except models.User.DoesNotExist:
+            raise exc.WrongArguments("Invalid, cannot find the user with given id (by_agent_mebmers)")
+
+        is_producer =  user.is_producer
+        if is_producer:
+            self.object_list = models.User.objects.all()
+        else:
+
+            member_ids = list(models.AgentMember.objects.filter(agentid=id).values_list("memberid",flat=True))
+            self.object_list = self.get_queryset().filter(id__in=member_ids)
+
+        page = self.paginate_queryset(self.object_list)
+        if page is not None:
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(self.object_list, many=True)
+
+        return response.Ok(serializer.data)
+
