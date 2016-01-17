@@ -44,6 +44,7 @@ from taiga.casting import permissions
 from taiga.users import filters as user_filters
 from taiga.users import services
 from taiga.users.signals import user_cancel_account as user_cancel_account_signal
+
 from taiga.auth.services import make_auth_response_data
 
 
@@ -143,6 +144,15 @@ class CastingViewSet(ModelCrudViewSet):
         user = self.retrieve(request, email=email)
         user.data['email'] = email
         return user # self.retrieve(request, email=email)
+
+    @list_route(methods=["GET"])
+    def roles_list(self, request, *args, **kwargs):
+        model_role  = models.Role
+        roles = model_role.objects.all().order_by("name").distinct("name")
+
+        serializer =  serializers.RoleSerializer(roles)
+
+        return response.Ok(serializer.data)
 
     @list_route(methods=["POST"])
     def password_recovery(self, request, pk=None):
