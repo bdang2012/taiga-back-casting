@@ -223,6 +223,37 @@ class CastingViewSet(ModelCrudViewSet):
         request.user.save(update_fields=["password"])
         return response.NoContent()
 
+
+    @list_route(methods=["POST"])
+    def change_facebookinfo(self, request):
+
+        try:
+            user = models.User.objects.get(id=request.DATA.get("id"))
+        except models.User.DoesNotExist:
+            raise exc.WrongArguments("Invalid, cannot find the user with given id")
+
+        facebookid = '100010961041067'
+        url = "http://graph.facebook.com/%s/picture?type=large" % facebookid
+
+        try:
+            response = request('GET', url, params={'type': 'large'})
+        except Exception:
+            raise exc.WrongArguments(_("Invalid image format"))
+        else:
+            avatar = response.content
+
+            if not avatar:
+                raise exc.WrongArguments(_("Incomplete arguments"))
+            try:
+                pil_image(avatar)
+            except Exception:
+                raise exc.WrongArguments(_("Invalid image format"))
+            else:
+                user.photo = avatar
+                user.save(update_fields=["photo"])
+
+        return response.NoContent()
+
     @list_route(methods=["POST"])
     def change_avatar(self, request):
         """
@@ -231,7 +262,6 @@ class CastingViewSet(ModelCrudViewSet):
         self.check_permissions(request, "change_avatar", None)
 
         avatar = request.FILES.get('avatar', None)
-
         if not avatar:
             raise exc.WrongArguments(_("Incomplete arguments"))
 
