@@ -47,6 +47,10 @@ from taiga.users.signals import user_cancel_account as user_cancel_account_signa
 
 from taiga.auth.services import make_auth_response_data
 
+from urllib.request import urlretrieve
+import os
+import shutil
+import glob
 
 class CastingViewSet(ModelCrudViewSet):
     permission_classes = (permissions.CastingPermission,)
@@ -227,30 +231,53 @@ class CastingViewSet(ModelCrudViewSet):
     @list_route(methods=["POST"])
     def change_facebookinfo(self, request):
 
-        try:
-            user = models.User.objects.get(id=request.DATA.get("id"))
-        except models.User.DoesNotExist:
-            raise exc.WrongArguments("Invalid, cannot find the user with given id")
+        user = models.User.objects.get(id=request.DATA.get("id"))
 
-        facebookid = '100010961041067'
-        url = "http://graph.facebook.com/%s/picture?type=large" % facebookid
+        facebookid = request.DATA.get("photo")
 
+        #create folder facebook if not exist
+        filepath = os.path.join(settings.MEDIA_ROOT,'user','facebook',facebookid)
+        #filepath = settings.MEDIA_ROOT + "user/facebook/" + facebookid
+        if not os.path.isdir(filepath):
+            os.makedirs(filepath)
+
+        filename_photo_download =  filepath + "/photo_download"
+        filename_photo   = filepath + "/photo"
+
+        facebookurl = "http://graph.facebook.com/" + facebookid + "/picture?width=9999"
         try:
-            response = request('GET', url, params={'type': 'large'})
-        except Exception:
+            #urlretrieve("http://graph.facebook.com/100010961041067/picture", filename)
+            urlretrieve(facebookurl, filename_photo_download)
+            if not os.path.exists(filename_photo):
+                shutil.copy2(filename_photo_download,filename_photo)
+            else :
+                if not os.path.getsize(filename_photo_download) == os.path.getsize(filename_photo):
+                    filenames_blob = filepath +  "/*_crop.*"
+                    files_removed = glob.glob(filenames_blob)
+                    for f in files_removed:
+                        os.remove(f)
+
+            avatar = "user/facebook/" + facebookid + "/photo"
+            user.photo = avatar
+            # user.full_name = request.DATA.get("full_name")
+            user.save(update_fields=["photo","full_name"])
+        except Exception as e:
+        #    raise exc.WrongArguments(_(e))
+            raise e
+
+
+
+        # facebookid = '100010961041067'
+        # url = "http://graph.facebook.com/%s/picture?type=large" % facebookid
+
+        #try:
+        #    response = request('GET', url, params={'type': 'large'})
+        #except Exception:
             raise exc.WrongArguments(_("Invalid image format"))
-        else:
-            avatar = response.content
+        #else:
 
-            if not avatar:
-                raise exc.WrongArguments(_("Incomplete arguments"))
-            try:
-                pil_image(avatar)
-            except Exception:
-                raise exc.WrongArguments(_("Invalid image format"))
-            else:
-                user.photo = avatar
-                user.save(update_fields=["photo"])
+        #make sure we have crop images
+        user_data = self.admin_serializer_class(user)
 
         return response.NoContent()
 
