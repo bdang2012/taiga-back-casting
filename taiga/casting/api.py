@@ -158,6 +158,15 @@ class CastingViewSet(ModelCrudViewSet):
 
         return response.Ok(serializer.data)
 
+    @list_route(methods=["GET"])
+    def members_list(self, request, *args, **kwargs):
+        model_user  = models.User
+        members = model_user.objects.all().order_by("full_name")
+
+        serializer =  serializers.UserSerializer(members)
+
+        return response.Ok(serializer.data)
+
     @list_route(methods=["POST"])
     def password_recovery(self, request, pk=None):
         username_or_email = request.DATA.get('username', None)
