@@ -60,7 +60,7 @@ class CastingViewSet(ModelCrudViewSet):
     filter_backends = (MembersFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action in ["partial_update", "update", "retrieve", "by_username", "by_email"]:
+        if self.action in ["partial_update", "update", "retrieve", "by_username", "by_email","by_userid"]:
             user = self.object
             if self.request.user == user or self.request.user.is_superuser:
                 return self.admin_serializer_class
@@ -147,6 +147,16 @@ class CastingViewSet(ModelCrudViewSet):
         email = request.QUERY_PARAMS.get("email", None)
         user = self.retrieve(request, email=email)
         user.data['email'] = email
+        return user # self.retrieve(request, email=email)
+
+    @list_route(methods=["GET"])
+    def by_userid(self, request, *args, **kwargs):
+        userid = request.QUERY_PARAMS.get("userid", None)
+        user = self.retrieve(request, id=userid)
+
+        theuser = models.User.objects.get(id=userid)
+        user.data['email'] = theuser.email
+
         return user # self.retrieve(request, email=email)
 
     @list_route(methods=["GET"])

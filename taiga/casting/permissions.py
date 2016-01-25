@@ -50,6 +50,7 @@ class CastingPermission(TaigaResourcePermission):
     voted_perms = AllowAny()
     watched_perms = AllowAny()
     by_email_perms = AllowAny()
+    by_userid_perms = AllowAny()
     roles_list_perms = AllowAny()
     members_list_perms = AllowAny()
     change_facebookinfo_perms = AllowAny()
