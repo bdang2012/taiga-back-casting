@@ -171,7 +171,7 @@ class CastingViewSet(ModelCrudViewSet):
     @list_route(methods=["GET"])
     def members_list(self, request, *args, **kwargs):
         model_user  = models.User
-        members = model_user.objects.all().order_by("full_name")
+        members = model_user.objects.all().filter(is_active=True).filter(is_agent=False).filter(is_producer=False).order_by("full_name")
 
         serializer =  serializers.UserSerializer(members)
 
