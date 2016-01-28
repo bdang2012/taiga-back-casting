@@ -140,6 +140,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_system = models.BooleanField(null=False, blank=False, default=False)
     is_producer = models.BooleanField(null=False, blank=False, default=False)
     is_agent = models.BooleanField(null=False, blank=False, default=False)
+
+    agent1 = models.ForeignKey("users.User", null=True, blank=False,related_name="user",verbose_name= _("agent1"))
     
     _cached_memberships = None
     _cached_liked_ids = None
