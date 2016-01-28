@@ -320,14 +320,3 @@ def role_post_save(sender, instance, created, **kwargs):
 
     instance.project.update_role_points()
 
-#binh added Thurs Jan 14, 2016
-class AgentMember(models.Model):
-    agentid = models.ForeignKey('users.User', related_name="user_agent")
-    memberid = models.ForeignKey('users.User', related_name="user_member")
-
-    class Meta:
-        verbose_name = "agentmember"
-        verbose_name_plural = "agentmembers"
-
-    def __str__(self):
-        return self.name
