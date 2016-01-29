@@ -177,6 +177,20 @@ class CastingViewSet(ModelCrudViewSet):
 
         return response.Ok(serializer.data)
 
+    @list_route(methods=["GET"])
+    def members_list_for_agent(self, request, *args, **kwargs):
+
+        agent1 = request.QUERY_PARAMS.get("userid", None)
+        
+        model_user  = models.User
+
+        members = model_user.objects.all().filter(is_active=True).filter(is_agent=False).filter(is_producer=False).filter(agent1=agent1).order_by("full_name")
+
+        serializer =  serializers.UserSerializer(members)
+
+        return response.Ok(serializer.data)
+
+
     @list_route(methods=["POST"])
     def password_recovery(self, request, pk=None):
         username_or_email = request.DATA.get('username', None)
